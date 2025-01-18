@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 
 dev_requirements = [
-    'yapf',
+    'pytest',
     'ruff',
     'jupyterlab',
     'tqdm',
@@ -12,7 +12,6 @@ dev_requirements = [
 
 requirements = [
     'dm_control',
-    'pytest',
 ] + dev_requirements
 
 
@@ -24,5 +23,5 @@ setup(
     install_requires=requirements,
     author='Roman Vaxenburg',
     description='Utilities for MuJoCo MJCF models',
-    url='https://github.com/vaxenburg/mujoco_utils',
+    url='https://github.com/janelia-anibody/mujoco_utils',
 )
