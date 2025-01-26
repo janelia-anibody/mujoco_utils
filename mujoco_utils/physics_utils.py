@@ -1,9 +1,10 @@
 """Utilities to work with compiled mjcf.physics."""
 
 import numpy as np
+from dm_control import mjcf
 
 
-def joint_to_dof_id(physics: 'mjcf.Physics',
+def joint_to_dof_id(physics: mjcf.Physics,
                     joint_name: str = None,
                     joint_id: int = None) -> int | list[int]:
     """Get degree-of-freedom index dof_id from joint_name or joint_id.
@@ -34,7 +35,7 @@ def joint_to_dof_id(physics: 'mjcf.Physics',
     return dof_id
 
 
-def is_position_actuator(physics: 'mjcf.physics',
+def is_position_actuator(physics: mjcf.Physics,
                          actuator_id: int) -> bool:
     """Check if given actuator a position actuator parametrized as:
     biastype: "affine"
@@ -62,7 +63,7 @@ def get_enabled_observables(walker) -> dict:
     return enabled_obs
 
 
-def get_critical_damping(physics: 'mjcf.Physics',
+def get_critical_damping(physics: mjcf.Physics,
                          joint_name: str,
                          actuator_name: str | None = None,
                          joint_spring: bool = True,

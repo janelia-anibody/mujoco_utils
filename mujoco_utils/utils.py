@@ -36,7 +36,8 @@ def print_tree(d):
             if str(d):
                 print(get_str(last) + '\u2514\u2500\u2500\u2500 ' + str(d))
             pop = last.pop()
-            while not pop and len(last): pop = last.pop()
+            while not pop and len(last):
+                pop = last.pop()
         else:
             for key in d.keys():
                 last.append(False if key == list(d.keys())[-1] else True)
