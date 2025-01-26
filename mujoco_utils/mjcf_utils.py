@@ -16,7 +16,8 @@ from mujoco_utils.quaternions import (
 def mjcf2xml(mjcf_model: mjcf.RootElement,
              output_file_name: str | None = None,
              precision: int = 5,
-             zero_threshold: float = 1e-7) -> str | None:
+             zero_threshold: float = 1e-7,
+            ) -> str | None:
     """Generate clean XML string from mjcf_model and optionally save to file.
 
     Args:
@@ -28,26 +29,22 @@ def mjcf2xml(mjcf_model: mjcf.RootElement,
             absolute value falls below this threshold will be treated as zero.
 
     Returns:
-        XML string or saves it to file.
+        XML string or, if `output_file_name` is provided, saves XML string to file.
     """
     
     # Dirty export to string first.
     xml_string = mjcf_model.to_xml_string(
-        'float', precision=precision, zero_threshold=zero_threshold)
+        'float',
+        precision=precision,
+        zero_threshold=zero_threshold,
+        filename_with_hash=False,
+    )
     
     # Remove empty default.
     root = etree.XML(xml_string, etree.XMLParser(remove_blank_text=True))
     default_elem = root.find('default')
     root.insert(3, default_elem[0])
     root.remove(default_elem)
-
-    # Remove hashes from filenames.
-    meshes = [mesh for mesh in root.find('asset').iter() if mesh.tag == 'mesh']
-    skins = [skin for skin in root.find('asset').iter() if skin.tag == 'skin']
-    things = meshes + skins
-    for thing in things:
-        name, extension = thing.get('file').split('.')
-        thing.set('file', '.'.join((name[:-41], extension)))
 
     # Get string from lxml and remove class="/".
     xml_string = etree.tostring(root, pretty_print=True)
