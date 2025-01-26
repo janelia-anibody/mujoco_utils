@@ -3,8 +3,17 @@
 from typing import Sequence
 from lxml import etree
 
+import numpy as np
+from dm_control import mjcf
 
-def mjcf2xml(mjcf_model: 'mjcf.RootElement',
+from mujoco_utils.quaternions import (
+    conj_quat,
+    mult_quat,
+    rotate_vec_with_quat,
+)
+
+
+def mjcf2xml(mjcf_model: mjcf.RootElement,
              output_file_name: str | None = None,
              precision: int = 5,
              zero_threshold: float = 1e-7) -> str | None:
@@ -66,7 +75,7 @@ def mjcf2xml(mjcf_model: 'mjcf.RootElement',
         return xml_string
 
 
-def change_body_frame(body: 'mjcf.Element',
+def change_body_frame(body: mjcf.Element,
                       frame_pos: Sequence | None = None,
                       frame_quat: Sequence | None = None):
     """In-place change the frame of a body while maintaining child locations."""
@@ -76,7 +85,7 @@ def change_body_frame(body: 'mjcf.Element',
     body_pos = np.zeros(3) if body.pos is None else body.pos
     dpos = body_pos - frame_pos
     body_quat = np.array((1., 0, 0, 0)) if body.quat is None else body.quat
-    dquat = mul_quat(neg_quat(frame_quat), body_quat)
+    dquat = mult_quat(conj_quat(frame_quat), body_quat)
     # Translate and rotate the body to the new frame.
     body.pos = frame_pos
     body.quat = frame_quat
@@ -88,14 +97,14 @@ def change_body_frame(body: 'mjcf.Element',
         if hasattr(child, 'quat'):
             child_quat = np.array(
                 (1., 0, 0, 0)) if child.quat is None else child.quat
-            child.quat = mul_quat(dquat, child_quat)
+            child.quat = mult_quat(dquat, child_quat)
         # Translate, accounting for rotations.
         child_pos = np.zeros(3) if child.pos is None else child.pos
-        pos_in_parent = rot_vec_quat(child_pos, body_quat) + dpos
-        child.pos = rot_vec_quat(pos_in_parent, neg_quat(frame_quat))
+        pos_in_parent = rotate_vec_with_quat(child_pos, body_quat) + dpos
+        child.pos = rotate_vec_with_quat(pos_in_parent, conj_quat(frame_quat))
 
 
-def get_mjcf_tree(element: 'mjcf.Element',
+def get_mjcf_tree(element: mjcf.Element,
                   bodies_only: bool = False) -> dict:
     """Returns dict representing kinematic tree of mjcf model.
     
