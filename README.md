@@ -1,5 +1,8 @@
-# `mujoco_utils`
-Common utilities for working with MuJoCo models
+# `mujoco_utils` 
+
+Common utilities for working with MuJoCo MJCF models
+
+![lint](https://github.com/janelia-anibody/mujoco_utils/actions/workflows/lint.yml/badge.svg)
 
 ## Installation
 To install into an existing conda environment, follow these steps:
