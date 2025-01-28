@@ -6,6 +6,7 @@ from setuptools import setup, find_packages
 dev_requirements = [
     'pytest',
     'ruff',
+    'mediapy',
     'jupyterlab',
     'tqdm',
 ]
