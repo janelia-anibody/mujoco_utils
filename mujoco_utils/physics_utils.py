@@ -1,7 +1,45 @@
-"""Utilities to work with compiled mjcf.physics."""
+"""Utilities for compiled mjcf.Physics."""
+
+from typing import Sequence
 
 import numpy as np
 from dm_control import mjcf
+
+from mujoco_utils.quaternions import (
+    rotate_vec_with_quat,
+    reciprocal_quat,
+)
+
+
+def site_pos_in_body_frame(physics: mjcf.Physics,
+                           body_name: str,
+                           site_xpos: Sequence | None = None,
+                           site_name: str | None = None,
+                          ) -> np.ndarray:
+    """Get site position in local reference frame of given body.
+
+    The site can be child of any body, not only the worldbody.
+
+    Args:
+        physics: mjcf.Physics instance.
+        body_name: Site coordinates will be returned in the local reference frame
+            of this body.
+        site_xpos: 3-tuple, site position in world coordinates. If site_xpos is
+            provided, site_name is ignored. Either site_xpos or site_name
+            must be provided.
+        site_name: Name of site to get the position of. If site_xpos is
+            provided, site_name is ignored.
+    Returns:
+        Position of site in body's local frame, as if the site was child of this
+            body in the first place.
+    """
+    if site_xpos is None:
+        site_xpos = physics.named.data.site_xpos[site_name]
+    quat = physics.named.data.xquat[body_name]
+    xpos = physics.named.data.xpos[body_name]
+    pos = rotate_vec_with_quat(site_xpos - xpos,
+                               reciprocal_quat(quat))
+    return pos
 
 
 def joint_to_dof_id(physics: mjcf.Physics,
