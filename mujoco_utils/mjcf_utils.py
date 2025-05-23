@@ -128,6 +128,8 @@ def add_camera(mjcf_body: mjcf.element,
                direction: str,
                distance: float = 1.,
                mode: str = 'trackcom',
+               rotate_angle: float = 0.,
+               overwrite_ok: bool = False,
                prefix: str | None = None,
               ) -> None:
     """Add camera with a pre-defined view to an mjcf model body.
@@ -138,6 +140,9 @@ def add_camera(mjcf_body: mjcf.element,
             (front, back, left, right, top, bottom).
         distance: Distance between camera and body.
         mode: MuJoCo camera mode, one of (fixed, track, trackcom).
+        rotate_angle: Optional additional rotation of the camera view, rad.
+            Positive: counter-clockwise.
+        overwrite_ok: If True, overwrite existing camera with the same name.
         prefix: Optional prefix for camera name. Cannot contain '/'.
     """
     if prefix is None:
@@ -151,8 +156,15 @@ def add_camera(mjcf_body: mjcf.element,
         'top': {'pos': (0, 0, distance), 'quat': (1., 0, 0, 0)},
         'bottom': {'pos': (0, 0, -distance), 'quat': (0, 1., 0, 0)},
     }
+    name = f'{prefix}{direction}'
+    existing_camera = mjcf_body.find('camera', name)
+    if existing_camera is not None and overwrite_ok:
+        existing_camera.remove()
+    quat = cameras[direction]['quat']
+    rot_quat = np.array([np.cos(-rotate_angle/2), 0, 0, np.sin(-rotate_angle/2)])
+    quat = mult_quat(quat, rot_quat)
     mjcf_body.add('camera',
-                  name=f'{prefix}{direction}',
+                  name=name,
                   mode=mode,
                   pos=cameras[direction]['pos'],
-                  quat=cameras[direction]['quat'])
+                  quat=quat)
