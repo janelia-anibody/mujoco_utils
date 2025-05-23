@@ -122,3 +122,37 @@ def get_mjcf_tree(element: mjcf.Element,
             continue
         tree[f'{child.tag}: {child.name}'] = get_mjcf_tree(child, bodies_only)
     return tree
+
+
+def add_camera(mjcf_body: mjcf.element,
+               direction: str,
+               distance: float = 1.,
+               mode: str = 'trackcom',
+               prefix: str | None = None,
+              ) -> None:
+    """Add camera with a pre-defined view to an mjcf model body.
+    
+    Args:
+        mjcf_body: MJCF model element of type "body" to add camera to.
+        direction: Kind of camera to add, one of
+            (front, back, left, right, top, bottom).
+        distance: Distance between camera and body.
+        mode: MuJoCo camera mode, one of (fixed, track, trackcom).
+        prefix: Optional prefix for camera name. Cannot contain '/'.
+    """
+    if prefix is None:
+        prefix = ''
+    s = np.sin(np.pi/4)  # Same as cos(pi/4).
+    cameras = {
+        'front': {'pos': (distance, 0, 0), 'quat': (0.5, 0.5, 0.5, 0.5)},
+        'back': {'pos': (-distance, 0, 0), 'quat': (0.5, 0.5, -0.5, -0.5)},
+        'left': {'pos': (0, distance, 0), 'quat': (0, 0, s, s)},
+        'right': {'pos': (0, -distance, 0), 'quat': (s, s, 0, 0)},
+        'top': {'pos': (0, 0, distance), 'quat': (1., 0, 0, 0)},
+        'bottom': {'pos': (0, 0, -distance), 'quat': (0, 1., 0, 0)},
+    }
+    mjcf_body.add('camera',
+                  name=f'{prefix}{direction}',
+                  mode=mode,
+                  pos=cameras[direction]['pos'],
+                  quat=cameras[direction]['quat'])
