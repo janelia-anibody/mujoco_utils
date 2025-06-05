@@ -19,3 +19,7 @@ git clone https://github.com/janelia-anibody/mujoco_utils.git
 cd mujoco_utils
 pip install -e .
 ```
+Verify that it works:
+```bash
+python -c "import mujoco_utils"
+```
