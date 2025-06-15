@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mujoco_utils"
+version = "0.1.0"
+dependencies = [
+    "mujoco",
+    "dm_control",
+    "pytest",
+    "mediapy",
+    "ruff",
+    "jupyterlab",
+    "tqdm",
+]
+requires-python = ">=3.10"
+authors = [
+  {name = "Roman Vaxenburg", email="vaxenburgr@hhmi.org"},
+]
+description = "Utilities for MuJoCo MJCF models."
+readme = "README.md"
+license = {file = "LICENSE"}
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python",
+]
+
+[project.urls]
+repository = "https://github.com/janelia-anibody/mujoco_utils"
+
+[tool.setuptools]
+packages = { find = {} }
