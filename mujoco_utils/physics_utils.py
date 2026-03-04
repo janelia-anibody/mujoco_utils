@@ -11,6 +11,57 @@ from mujoco_utils.quaternions import (
 )
 
 
+def check_joints_in_range(
+    physics: mjcf.Physics,
+    joints: int | str | list[int] | list[str] | None = None,
+    ) -> list[tuple]:
+    """
+    For given physics state, check if joint angles are within their limits.
+    
+    It is assumed that the first joint and only the first joint is free joint.
+
+    Args:
+        physics: An mjcf.Physics instance.
+        joints: Joint names or ids to check the ranges for. If None, check all
+            joints.
+
+    Returns:
+        A list of tuples like:
+            (joint_id, joint_name, joint_range, qpos, qpos in range?)
+    """
+    if joints is None:
+        joints = [*range(physics.model.njnt)]
+    if isinstance(joints, (str, int)):
+        joints = [joints]
+    assert physics.named.model.jnt_type[0] == 0, (
+        'First joint is expected to be free joint.')
+    assert np.all(physics.named.model.jnt_type[1:] != 0), (
+            'Only first joint can be free joint.')
+    is_in_range = []
+    for joint in joints:
+        if not physics.named.model.jnt_limited[joint]:
+            continue
+        if physics.named.model.jnt_type[joint] == 0:
+            continue  # Skip free joint.
+        jnt_range = physics.named.model.jnt_range[joint].copy()
+        if isinstance(joint, int):
+            dof_id = joint_to_dof_id(physics, joint_id=joint)
+            # Shift dof_id by 1 because of the free joint.
+            q = physics.named.data.qpos[dof_id + 1].copy()
+        else:
+            q = physics.named.data.qpos[joint].copy()
+        if isinstance(joint, int):
+            joint_name = physics.model.id2name(joint, 'joint')
+            joint_id = joint
+        elif isinstance(joint, str):
+            joint_name = joint
+            joint_id = physics.model.name2id(joint, 'joint')
+        is_in_range.append(
+            (joint_id, joint_name, list(jnt_range),
+             q.item(), (jnt_range[0] <= q <= jnt_range[1]).item()))
+    return is_in_range
+
+
 def site_pos_in_body_frame(physics: mjcf.Physics,
                            body_name: str,
                            site_xpos: Sequence | None = None,
