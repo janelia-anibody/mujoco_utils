@@ -17,6 +17,7 @@ def mjcf2xml(mjcf_model: mjcf.RootElement,
              output_file_name: str | None = None,
              precision: int = 5,
              zero_threshold: float = 1e-7,
+             meshdir: str | None = None,
             ) -> str | None:
     """Generate clean XML string from mjcf_model and optionally save to file.
 
@@ -27,6 +28,7 @@ def mjcf2xml(mjcf_model: mjcf.RootElement,
         precision: Number of digits to output for floating point quantities.
         zero_threshold: When outputting XML, floating point quantities whose
             absolute value falls below this threshold will be treated as zero.
+        meshdir: Optional mesh directory to set in the compiler element.
 
     Returns:
         XML string or, if `output_file_name` is provided, saves XML string to file.
@@ -45,6 +47,11 @@ def mjcf2xml(mjcf_model: mjcf.RootElement,
     default_elem = root.find('default')
     root.insert(3, default_elem[0])
     root.remove(default_elem)
+
+    if meshdir is not None:
+        #  dm_control drops it on export so let's set it manually.
+        root.find('compiler').set('meshdir', 'meshes')
+
 
     # Get string from lxml and remove class="/".
     xml_string = etree.tostring(root, pretty_print=True)
